@@ -1,0 +1,12 @@
+# Example reverse proxy config for Caddy (https://caddyserver.com).
+# Caddy handles HTTPS automatically (Let's Encrypt) — no manual cert setup needed.
+#
+# Skip this file if your VPS already has nginx/Caddy/Cloudflare Tunnel in front
+# of other services — just add an equivalent rule there instead.
+#
+# Usage: copy to /etc/caddy/Caddyfile on the VPS (or merge into the existing one),
+# then: sudo systemctl reload caddy
+
+activate.sawyuntech.com {
+    reverse_proxy localhost:8010
+}

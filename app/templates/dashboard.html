@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Control Center Overview{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+  <!-- 4 main stat cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <a href="/admin/projects" class="stat-card group hover:border-primary/30 transition-colors" style="text-decoration:none; cursor:pointer">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(37,99,235,0.15)">
+          <span class="msym text-primary" style="font-size:18px">folder_managed</span>
+        </div>
+        <span class="text-[10px] font-mono text-outline uppercase tracking-wider">Projects</span>
+      </div>
+      <p class="text-2xl font-bold text-on-surface">{{ total_projects }}</p>
+      <p class="text-xs text-on-surface-variant mt-0.5">Software products</p>
+    </a>
+    <a href="/admin/customers" class="stat-card group hover:border-secondary/30 transition-colors" style="text-decoration:none; cursor:pointer">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(190,198,224,0.12)">
+          <span class="msym" style="font-size:18px; color:#bec6e0">group</span>
+        </div>
+        <span class="text-[10px] font-mono text-outline uppercase tracking-wider">Customers</span>
+      </div>
+      <p class="text-2xl font-bold text-on-surface">{{ total_customers }}</p>
+      <p class="text-xs text-on-surface-variant mt-0.5">Registered accounts</p>
+    </a>
+    <a href="/admin/licenses" class="stat-card group hover:border-primary/20 transition-colors" style="text-decoration:none; cursor:pointer">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(52,211,153,0.1)">
+          <span class="msym" style="font-size:18px; color:#34d399">assignment_turned_in</span>
+        </div>
+        <span class="text-[10px] font-mono text-outline uppercase tracking-wider">Licenses</span>
+      </div>
+      <p class="text-2xl font-bold text-on-surface">{{ active_licenses }}</p>
+      <p class="text-xs text-on-surface-variant mt-0.5">Active activations</p>
+    </a>
+    <a href="/admin/devices" class="stat-card group hover:border-tertiary/20 transition-colors" style="text-decoration:none; cursor:pointer">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(183,200,225,0.1)">
+          <span class="msym" style="font-size:18px; color:#b7c8e1">devices</span>
+        </div>
+        <span class="text-[10px] font-mono text-outline uppercase tracking-wider">Devices</span>
+      </div>
+      <p class="text-2xl font-bold text-on-surface">{{ total_devices }}</p>
+      <p class="text-xs text-on-surface-variant mt-0.5">Registered machines</p>
+    </a>
+  </div>
+
+  <!-- Secondary stats row -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a href="/admin/tokens" class="stat-card flex items-center gap-4 hover:border-primary/20 transition-colors" style="text-decoration:none; cursor:pointer; padding:14px 20px">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(251,191,36,0.1)">
+        <span class="msym" style="font-size:18px; color:#fbbf24">key</span>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-on-surface">{{ pending_tokens }}</p>
+        <p class="text-xs text-on-surface-variant">Pending tokens</p>
+      </div>
+    </a>
+    <a href="/admin/audit-logs" class="stat-card flex items-center gap-4 hover:border-primary/20 transition-colors" style="text-decoration:none; cursor:pointer; padding:14px 20px">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(180,197,255,0.1)">
+        <span class="msym text-primary" style="font-size:18px">history_edu</span>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-on-surface">{{ recent_audit|length }}</p>
+        <p class="text-xs text-on-surface-variant">Recent audit events</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Main content grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <!-- Recent tokens -->
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b" style="border-color:rgba(255,255,255,0.06)">
+        <h3 class="text-sm font-semibold text-on-surface">Recent Tokens</h3>
+        <a href="/admin/tokens" class="text-xs text-primary hover:underline">View all →</a>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style="background:#191c1e; border-color:rgba(255,255,255,0.06)">
+            <th class="th">License #</th>
+            <th class="th">Customer</th>
+            <th class="th">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y" style="--tw-divide-opacity:1">
+          {% for t in recent_tokens %}
+          <tr class="hover:bg-[#272a2c] transition-colors cursor-pointer" onclick="window.location='/admin/tokens/{{ t.id }}'">
+            <td class="td font-mono text-xs text-on-surface-variant">{{ t.license_number }}</td>
+            <td class="td text-sm text-on-surface">{{ t.customer.name }}</td>
+            <td class="td"><span class="badge badge-{{ t.status }}">{{ t.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="td text-center text-on-surface-variant text-sm py-8">No tokens yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Recent audit activity -->
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b" style="border-color:rgba(255,255,255,0.06)">
+        <h3 class="text-sm font-semibold text-on-surface">Recent Activity</h3>
+        <a href="/admin/audit-logs" class="text-xs text-primary hover:underline">View all →</a>
+      </div>
+      <div class="divide-y" style="border-color:rgba(255,255,255,0.05)">
+        {% for log in recent_audit %}
+        <div class="flex items-start gap-3 px-5 py-3">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+               style="background:rgba(37,99,235,0.1); border:1px solid rgba(180,197,255,0.15)">
+            <span class="msym text-primary" style="font-size:14px">
+              {% if 'login' in log.action or 'logout' in log.action %}person
+              {% elif 'project' in log.action %}folder_managed
+              {% elif 'customer' in log.action %}group
+              {% elif 'token' in log.action %}key
+              {% elif 'license' in log.action %}assignment_turned_in
+              {% elif 'device' in log.action %}devices
+              {% else %}history_edu
+              {% endif %}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-on-surface truncate">
+              <span class="font-semibold">{{ log.actor_name }}</span>
+              <span class="text-on-surface-variant"> · {{ log.action.replace('_', ' ') }}</span>
+              {% if log.resource_name %}<span class="text-primary"> {{ log.resource_name[:24] }}</span>{% endif %}
+            </p>
+            <p class="text-[11px] text-outline font-mono mt-0.5">{{ log.created_at.strftime('%b %d · %H:%M UTC') }}</p>
+          </div>
+        </div>
+        {% else %}
+        <div class="px-5 py-8 text-center text-sm text-on-surface-variant">No activity yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent licenses table -->
+  <div class="card overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b" style="border-color:rgba(255,255,255,0.06)">
+      <h3 class="text-sm font-semibold text-on-surface">Recent License Activations</h3>
+      <a href="/admin/licenses" class="text-xs text-primary hover:underline">View all →</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style="background:#191c1e; border-color:rgba(255,255,255,0.06)">
+            <th class="th">Customer</th>
+            <th class="th">Project</th>
+            <th class="th">License #</th>
+            <th class="th">Activated</th>
+            <th class="th">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in recent_licenses %}
+          <tr class="hover:bg-[#272a2c] transition-colors border-b" style="border-color:rgba(255,255,255,0.04)">
+            <td class="td">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+                     style="background:rgba(37,99,235,0.12); color:#b4c5ff">{{ l.customer.name[0]|upper }}</div>
+                <span class="font-medium text-on-surface">{{ l.customer.name }}</span>
+              </div>
+            </td>
+            <td class="td text-on-surface-variant text-sm">{{ l.project.name }}</td>
+            <td class="td font-mono text-xs text-on-surface-variant">{{ l.license_number }}</td>
+            <td class="td text-xs text-outline whitespace-nowrap">{{ l.activated_at.strftime('%b %d, %Y') }}</td>
+            <td class="td">
+              <span class="badge {% if l.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                {% if l.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="td text-center text-on-surface-variant text-sm py-8">No licenses activated yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Licenses{% endblock %}
+{% block page_title %}Activated Licenses{% endblock %}
+
+{% block content %}
+
+  {% if success %}
+  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+       x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
+       class="notif-success">
+    <span class="msym" style="font-size:18px; color:#34d399">check_circle</span>
+    {{ success }}
+    <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100"><span class="msym" style="font-size:16px">close</span></button>
+  </div>
+  {% endif %}
+  {% if error %}
+  <div x-data="{ show: true }" x-show="show"
+       x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
+       class="notif-error">
+    <span class="msym" style="font-size:18px; color:#ffb4ab">error</span>
+    {{ error }}
+    <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100"><span class="msym" style="font-size:16px">close</span></button>
+  </div>
+  {% endif %}
+
+  <div class="flex items-center justify-between mb-4">
+    <p class="text-sm text-on-surface-variant">{{ licenses|length }} license{{ 's' if licenses|length != 1 }}</p>
+  </div>
+
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style="background:#191c1e; border-color:rgba(255,255,255,0.06)">
+            <th class="th">Customer</th>
+            <th class="th">Project</th>
+            <th class="th">License #</th>
+            <th class="th">Computer ID</th>
+            <th class="th">Activated</th>
+            <th class="th">Status</th>
+            <th class="th"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in licenses %}
+          <tr class="hover:bg-[#272a2c] transition-colors border-b group" style="border-color:rgba(255,255,255,0.04)">
+            <td class="td">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+                     style="background:rgba(37,99,235,0.12); color:#b4c5ff">{{ l.customer.name[0]|upper }}</div>
+                <span class="font-medium text-on-surface">{{ l.customer.name }}</span>
+              </div>
+            </td>
+            <td class="td text-on-surface-variant text-sm">{{ l.project.name }}</td>
+            <td class="td font-mono text-xs text-on-surface-variant">{{ l.license_number }}</td>
+            <td class="td font-mono text-xs text-outline max-w-[140px] truncate" title="{{ l.computer_id }}">{{ l.computer_id }}</td>
+            <td class="td text-xs text-outline whitespace-nowrap">{{ l.activated_at.strftime('%b %d, %Y') }}</td>
+            <td class="td">
+              {% if l.is_active %}
+                <span class="badge badge-active">Active</span>
+              {% else %}
+                <span class="badge badge-inactive">
+                  Inactive{% if l.deactivated_at %} · {{ l.deactivated_at.strftime('%b %d') }}{% endif %}
+                </span>
+              {% endif %}
+            </td>
+            <td class="td text-right">
+              {% if l.is_active %}
+              <form method="POST" action="/admin/licenses/{{ l.id }}/deactivate" class="inline"
+                    x-data @submit.prevent='if(confirm("Deactivate " + {{ l.customer.name|tojson }} + "&#39;s license?")) $el.submit()'>
+                <button type="submit"
+                        class="text-xs text-outline hover:text-error transition-colors font-mono opacity-0 group-hover:opacity-100">
+                  Deactivate
+                </button>
+              </form>
+              {% else %}
+                <span class="text-xs text-outline opacity-0 group-hover:opacity-50">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="td text-center text-on-surface-variant text-sm py-12">
+            <div class="flex flex-col items-center gap-2">
+              <span class="msym text-outline" style="font-size:32px">assignment_turned_in</span>
+              <p>No licenses activated yet</p>
+              <p class="text-xs">Licenses appear here once customers use activation links.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}

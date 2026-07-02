@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Devices{% endblock %}
+{% block page_title %}Device Management{% endblock %}
+
+{% block content %}
+
+  {% if success %}
+  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+       x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
+       class="notif-success">
+    <span class="msym" style="font-size:18px; color:#34d399">check_circle</span>{{ success }}
+    <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100"><span class="msym" style="font-size:16px">close</span></button>
+  </div>
+  {% endif %}
+  {% if error %}
+  <div x-data="{ show: true }" x-show="show"
+       x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
+       class="notif-error">
+    <span class="msym" style="font-size:18px; color:#ffb4ab">error</span>{{ error }}
+    <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100"><span class="msym" style="font-size:16px">close</span></button>
+  </div>
+  {% endif %}
+
+  <div class="flex items-center justify-between mb-4">
+    <p class="text-sm text-on-surface-variant">{{ devices|length }} device{{ 's' if devices|length != 1 }}</p>
+  </div>
+
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style="background:#191c1e; border-color:rgba(255,255,255,0.06)">
+            <th class="th">Hostname</th>
+            <th class="th">Fingerprint</th>
+            <th class="th">OS</th>
+            <th class="th">App Version</th>
+            <th class="th">Customer</th>
+            <th class="th">Last Seen</th>
+            <th class="th">Status</th>
+            <th class="th"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in devices %}
+          <tr class="hover:bg-[#272a2c] transition-colors border-b group" style="border-color:rgba(255,255,255,0.04)">
+            <td class="td font-medium text-on-surface">{{ d.hostname or '—' }}</td>
+            <td class="td font-mono text-xs text-on-surface-variant max-w-[160px] truncate" title="{{ d.fingerprint }}">{{ d.fingerprint }}</td>
+            <td class="td text-sm text-on-surface-variant">{{ d.os or '—' }}</td>
+            <td class="td font-mono text-xs text-on-surface-variant">{{ d.app_version or '—' }}</td>
+            <td class="td text-sm text-on-surface-variant">
+              {% if d.customer %}{{ d.customer.name }}{% else %}—{% endif %}
+            </td>
+            <td class="td text-xs text-outline whitespace-nowrap">
+              {{ d.last_seen.strftime('%b %d, %Y · %H:%M') if d.last_seen else '—' }}
+            </td>
+            <td class="td"><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
+            <td class="td text-right">
+              <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {% if d.status != 'blocked' %}
+                <form method="POST" action="/admin/devices/{{ d.id }}/block"
+                      x-data @submit.prevent="if(confirm('Block this device?')) $el.submit()">
+                  <button type="submit" class="btn-danger" style="padding:4px 8px; font-size:12px">
+                    <span class="msym" style="font-size:14px">block</span>
+                  </button>
+                </form>
+                {% else %}
+                <form method="POST" action="/admin/devices/{{ d.id }}/unblock">
+                  <button type="submit" class="btn-ghost" style="padding:4px 8px; font-size:12px">
+                    <span class="msym" style="font-size:14px">check_circle</span>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" class="td text-center text-on-surface-variant text-sm py-12">
+            <div class="flex flex-col items-center gap-2">
+              <span class="msym text-outline" style="font-size:32px">devices</span>
+              <p>No devices registered yet</p>
+              <p class="text-xs">Devices are automatically registered when a license is activated.</p>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
