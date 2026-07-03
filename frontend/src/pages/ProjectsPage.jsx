@@ -9,6 +9,10 @@ import { formatDate } from '../utils/format';
 
 const EMPTY_FORM = { name: '', slug: '', deep_link_scheme: '', type: '', status: 'Development', version: '', description: '', import_private_key: '' };
 
+function slugify(name) {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState(null);
@@ -35,6 +39,11 @@ export default function ProjectsPage() {
     </button>
   ), []);
   usePageHeader('Software Projects', headerActions);
+
+  const handleNameChange = (e) => {
+    const name = e.target.value;
+    setForm((f) => ({ ...f, name, slug: slugify(name) }));
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -133,11 +142,11 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Project Name</label>
-              <input required placeholder="e.g. NexusPOS" className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input required placeholder="e.g. NexusPOS" className="input" value={form.name} onChange={handleNameChange} />
             </div>
             <div>
               <label className="label">Slug</label>
-              <input required placeholder="e.g. nexuspos" className="input" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              <input required readOnly placeholder="Auto-generated from name" className="input font-mono" style={{ opacity: form.slug ? 1 : 0.6, cursor: 'default' }} value={form.slug} />
             </div>
           </div>
           <div>

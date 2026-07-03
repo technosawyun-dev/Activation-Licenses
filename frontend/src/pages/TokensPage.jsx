@@ -9,6 +9,22 @@ import { formatDate } from '../utils/format';
 
 const EMPTY_FORM = { project_id: '', customer_id: '', license_number: '', license_type: 'lifetime', expires_days: '' };
 
+// Preset license types map to a standard validity window; anything else
+// (a custom label, or a plain number of days typed directly into the
+// License Type field) is left for the admin to interpret themselves.
+const LICENSE_TYPE_DAYS = { lifetime: '', annual: '365', monthly: '30', trial: '14' };
+
+function generateLicenseNumber(project, existingTokens) {
+  if (!project) return '';
+  const prefix = (project.slug || project.name || 'LIC')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'LIC';
+  const year = new Date().getFullYear();
+  const seq = existingTokens.filter((t) => String(t.project_id) === String(project.id)).length + 1;
+  return `${prefix}-${year}-${String(seq).padStart(3, '0')}`;
+}
+
 export default function TokensPage() {
   const navigate = useNavigate();
   const [tokens, setTokens] = useState(null);
@@ -39,6 +55,34 @@ export default function TokensPage() {
     </button>
   ), []);
   usePageHeader('Activation Tokens', headerActions);
+
+  const handleProjectChange = (e) => {
+    const project_id = e.target.value;
+    const project = projects.find((p) => String(p.id) === project_id);
+    setForm((f) => ({ ...f, project_id, license_number: generateLicenseNumber(project, tokens || []) }));
+  };
+
+  // The <select> shows "Custom" whenever the stored license_type isn't one of
+  // the known presets (i.e. it's a raw day count typed in via the Custom field).
+  const isPresetType = form.license_type.toLowerCase() in LICENSE_TYPE_DAYS;
+  const licenseTypeSelectValue = isPresetType ? form.license_type.toLowerCase() : 'custom';
+
+  const handleLicenseTypeSelect = (e) => {
+    const val = e.target.value;
+    if (val === 'custom') {
+      // Custom reuses the existing Link Expires (days) field as the day count
+      // instead of adding a second box — just seed license_type from whatever's there.
+      setForm((f) => ({ ...f, license_type: f.license_type.toLowerCase() in LICENSE_TYPE_DAYS ? f.expires_days : f.license_type }));
+    } else {
+      setForm((f) => ({ ...f, license_type: val, expires_days: LICENSE_TYPE_DAYS[val] }));
+    }
+  };
+
+  const handleExpiresDaysChange = (e) => {
+    const days = e.target.value;
+    // In Custom mode the day count IS the license type, so keep them in sync.
+    setForm((f) => (licenseTypeSelectValue === 'custom' ? { ...f, expires_days: days, license_type: days } : { ...f, expires_days: days }));
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -114,7 +158,7 @@ export default function TokensPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Project</label>
-              <select required className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value })}>
+              <select required className="input" value={form.project_id} onChange={handleProjectChange}>
                 <option value="">Select project…</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
@@ -129,21 +173,23 @@ export default function TokensPage() {
           </div>
           <div>
             <label className="label">License Number</label>
-            <input required placeholder="e.g. SY-2025-001" className="input font-mono" value={form.license_number} onChange={(e) => setForm({ ...form, license_number: e.target.value })} />
+            <input required readOnly placeholder="Select a project to generate" className="input font-mono" style={{ opacity: form.license_number ? 1 : 0.6, cursor: 'default' }} value={form.license_number} />
+            <p className="text-[11px] text-outline mt-1">Auto-generated from the project, e.g. PROJECT-2026-001</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">License Type</label>
-              <select className="input" value={form.license_type} onChange={(e) => setForm({ ...form, license_type: e.target.value })}>
+              <select className="input" value={licenseTypeSelectValue} onChange={handleLicenseTypeSelect}>
                 <option value="lifetime">Lifetime</option>
                 <option value="annual">Annual</option>
                 <option value="monthly">Monthly</option>
                 <option value="trial">Trial</option>
+                <option value="custom">Custom (days)…</option>
               </select>
             </div>
             <div>
               <label className="label">Link Expires (days)</label>
-              <input type="number" min="1" placeholder="Leave blank = never" className="input" value={form.expires_days} onChange={(e) => setForm({ ...form, expires_days: e.target.value })} />
+              <input type="number" min="1" placeholder="Leave blank = never" className="input" value={form.expires_days} onChange={handleExpiresDaysChange} />
             </div>
           </div>
           <div className="flex gap-3 pt-1">
