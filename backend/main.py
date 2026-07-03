@@ -1,26 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import text
 
 from .config import settings
 from .database import engine, Base, SessionLocal
 from .models import AdminUser
 from .auth import hash_password
-from .routers import activation, admin
+from .routers import activation, api_admin
 
 app = FastAPI(title=settings.APP_NAME, docs_url=None, redoc_url=None)
 app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SECRET_KEY,
-    max_age=28800,
-    https_only=settings.SESSION_HTTPS_ONLY,
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_URL],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["Authorization", "Content-Type"],
 )
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(activation.router)
-app.include_router(admin.router)
+app.include_router(api_admin.router)
 
 
 def _add_column_if_not_exists(conn, table: str, column: str, col_def: str):
@@ -73,4 +72,4 @@ def on_startup():
 
 @app.get("/")
 async def root():
-    return RedirectResponse("/admin/dashboard", status_code=302)
+    return RedirectResponse(settings.FRONTEND_URL, status_code=302)
