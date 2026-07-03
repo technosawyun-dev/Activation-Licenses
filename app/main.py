@@ -11,7 +11,12 @@ from .auth import hash_password
 from .routers import activation, admin
 
 app = FastAPI(title=settings.APP_NAME, docs_url=None, redoc_url=None)
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY, max_age=28800)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    max_age=28800,
+    https_only=settings.SESSION_HTTPS_ONLY,
+)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(activation.router)
