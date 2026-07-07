@@ -32,7 +32,7 @@ ROLES_ADMIN = ("SUPER_OWNER", "ADMIN")
 ROLES_SUPER_OWNER_ONLY = ("SUPER_OWNER",)
 
 
-# ---------- Request bodies ----------
+# Request bodies
 
 class LoginBody(BaseModel):
     username: str
@@ -95,7 +95,7 @@ class PasswordResetBody(BaseModel):
     new_password: str
 
 
-# ---------- Serialization helpers ----------
+# Serialization helpers
 
 def _user_dict(u: AdminUser) -> dict:
     return {
@@ -180,7 +180,7 @@ def _log(db: Session, request: Request, user: AdminUser, action: str,
     ))
 
 
-# ---------- Auth ----------
+# Auth
 
 @router.post("/login")
 async def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
@@ -207,7 +207,7 @@ async def me(user: AdminUser = Depends(get_current_user)):
     return _user_dict(user)
 
 
-# ---------- Dashboard ----------
+# Dashboard
 
 @router.get("/dashboard")
 async def dashboard(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -223,7 +223,7 @@ async def dashboard(db: Session = Depends(get_db), user: AdminUser = Depends(get
     }
 
 
-# ---------- Projects ----------
+# Projects
 
 @router.get("/projects")
 async def projects_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -326,7 +326,7 @@ async def project_delete(project_id: int, request: Request, db: Session = Depend
     return {"ok": True}
 
 
-# ---------- Customers ----------
+# Customers
 
 @router.get("/customers")
 async def customers_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -384,7 +384,7 @@ async def customer_delete(customer_id: int, request: Request, db: Session = Depe
     return {"ok": True}
 
 
-# ---------- Tokens ----------
+# Tokens
 
 @router.get("/tokens")
 async def tokens_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -443,7 +443,7 @@ async def token_revoke(token_id: int, request: Request, db: Session = Depends(ge
     return _token_dict(token, include_activation_url=True)
 
 
-# ---------- Licenses ----------
+# Licenses
 
 @router.get("/licenses")
 async def licenses_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -465,7 +465,7 @@ async def license_deactivate(license_id: int, request: Request, db: Session = De
     return _license_dict(lic)
 
 
-# ---------- Devices ----------
+# Devices
 
 @router.get("/devices")
 async def devices_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
@@ -502,7 +502,7 @@ async def device_unblock(device_id: int, request: Request, db: Session = Depends
     return _device_dict(device)
 
 
-# ---------- Audit Logs ----------
+# Audit Logs
 
 @router.get("/audit-logs")
 async def audit_logs_list(q: str = "", resource: str = "", db: Session = Depends(get_db),
@@ -521,7 +521,7 @@ async def audit_logs_list(q: str = "", resource: str = "", db: Session = Depends
     return [_audit_dict(a) for a in logs]
 
 
-# ---------- Users (SUPER_OWNER only) ----------
+# Users (SUPER_OWNER only)
 
 @router.get("/users")
 async def users_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):

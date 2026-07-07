@@ -3,8 +3,8 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/licensedb"
-    JWT_SECRET_KEY: str = "dev-jwt-secret-key-change-in-production"
-    ENCRYPTION_KEY: str = ""
+    JWT_SECRET_KEY: str
+    ENCRYPTION_KEY: str
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin"
     BASE_URL: str = "http://localhost:8000"
