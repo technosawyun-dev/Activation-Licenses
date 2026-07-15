@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { usePageHeader } from '../context/PageHeaderContext';
 import Modal from '../components/Modal';
@@ -9,6 +10,7 @@ import { formatDate } from '../utils/format';
 const EMPTY_FORM = { name: '', company_name: '', email: '', phone: '', country: '', notes: '' };
 
 export default function CustomersPage() {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [open, setOpen] = useState(false);
@@ -106,7 +108,7 @@ export default function CustomersPage() {
               </thead>
               <tbody>
                 {customers.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#272a2c] transition-colors border-b group" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                  <tr key={c.id} className="hover:bg-[#272a2c] transition-colors border-b cursor-pointer group" style={{ borderColor: 'rgba(255,255,255,0.04)' }} onClick={() => navigate(`/customers/${c.id}`)}>
                     <td className="td">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold" style={{ background: 'rgba(37,99,235,0.12)', color: '#b4c5ff' }}>
@@ -126,10 +128,10 @@ export default function CustomersPage() {
                     <td className="td text-xs text-outline whitespace-nowrap">{formatDate(c.created_at)}</td>
                     <td className="td text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(c)} className="btn-ghost" style={{ padding: '4px 8px', fontSize: 12 }}>
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="btn-ghost" style={{ padding: '4px 8px', fontSize: 12 }}>
                           <span className="msym" style={{ fontSize: 14 }}>edit</span>
                         </button>
-                        <button onClick={() => handleDelete(c)} className="btn-danger" style={{ padding: '4px 8px', fontSize: 12, border: 'none' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(c); }} className="btn-danger" style={{ padding: '4px 8px', fontSize: 12, border: 'none' }}>
                           <span className="msym" style={{ fontSize: 14 }}>delete</span>
                         </button>
                       </div>

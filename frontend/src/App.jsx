@@ -8,10 +8,13 @@ import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import CustomersPage from './pages/CustomersPage';
+import CustomerDetailPage from './pages/CustomerDetailPage';
 import TokensPage from './pages/TokensPage';
 import TokenDetailPage from './pages/TokenDetailPage';
 import LicensesPage from './pages/LicensesPage';
+import LicenseDetailPage from './pages/LicenseDetailPage';
 import DevicesPage from './pages/DevicesPage';
+import DeviceDetailPage from './pages/DeviceDetailPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import UsersPage from './pages/UsersPage';
 
@@ -33,10 +36,13 @@ export default function App() {
               <Route path="/projects" element={<ProjectsPage />} />
               <Route path="/projects/:id" element={<ProjectDetailPage />} />
               <Route path="/customers" element={<CustomersPage />} />
+              <Route path="/customers/:id" element={<CustomerDetailPage />} />
               <Route path="/tokens" element={<TokensPage />} />
               <Route path="/tokens/:id" element={<TokenDetailPage />} />
               <Route path="/licenses" element={<LicensesPage />} />
+              <Route path="/licenses/:id" element={<LicenseDetailPage />} />
               <Route path="/devices" element={<DevicesPage />} />
+              <Route path="/devices/:id" element={<DeviceDetailPage />} />
               <Route path="/audit-logs" element={<AuditLogsPage />} />
               <Route path="/users" element={<UsersPage />} />
             </Route>

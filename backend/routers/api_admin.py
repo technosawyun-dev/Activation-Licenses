@@ -129,6 +129,9 @@ def _token_dict(t: ActivationToken, include_activation_url: bool = False, includ
         "license_number": t.license_number, "license_type": t.license_type, "status": t.status,
         "expires_at": t.expires_at, "created_at": t.created_at, "used_at": t.used_at,
         "project_name": t.project.name, "customer_name": t.customer.name,
+        # Whether the license this token produced (if any) is currently active —
+        # None means no license has been activated from this token yet.
+        "license_is_active": t.license.is_active if t.license else None,
     }
     if include_activation_url:
         d["activation_url"] = f"{settings.BASE_URL}/activate?token={t.token}"
@@ -137,22 +140,34 @@ def _token_dict(t: ActivationToken, include_activation_url: bool = False, includ
     return d
 
 
-def _license_dict(lic: License) -> dict:
-    return {
+def _license_dict(lic: License, include_device: bool = False) -> dict:
+    d = {
         "id": lic.id, "license_number": lic.license_number, "computer_id": lic.computer_id,
         "activated_at": lic.activated_at, "deactivated_at": lic.deactivated_at,
         "is_active": lic.is_active,
-        "customer_name": lic.customer.name, "project_name": lic.project.name,
+        "customer_id": lic.customer_id, "customer_name": lic.customer.name,
+        "project_id": lic.project_id, "project_name": lic.project.name,
+        "token_id": lic.token_id, "license_type": lic.token.license_type if lic.token else None,
     }
+    if include_device:
+        d["device"] = _device_dict(lic.device) if lic.device else None
+    return d
 
 
-def _device_dict(dv: Device) -> dict:
-    return {
+def _device_dict(dv: Device, include_license: bool = False) -> dict:
+    d = {
         "id": dv.id, "hostname": dv.hostname, "fingerprint": dv.fingerprint, "os": dv.os,
         "app_version": dv.app_version, "last_seen": dv.last_seen, "status": dv.status,
+        # The desktop app only calls /api/v1/validate once per launch (not on a
+        # recurring timer), so "online" is deliberately coarse: seen at all today.
+        "is_online": dv.last_seen is not None and dv.last_seen.date() == datetime.utcnow().date(),
         "blocked_at": dv.blocked_at, "created_at": dv.created_at,
-        "customer_name": dv.customer.name if dv.customer else None,
+        "customer_id": dv.customer_id, "customer_name": dv.customer.name if dv.customer else None,
+        "license_id": dv.license_id,
     }
+    if include_license:
+        d["license"] = _license_dict(dv.license) if dv.license else None
+    return d
 
 
 def _audit_dict(a: AuditLog) -> dict:
@@ -333,6 +348,21 @@ async def customers_list(db: Session = Depends(get_db), user: AdminUser = Depend
     return [_customer_dict(c) for c in db.query(Customer).order_by(Customer.created_at.desc()).all()]
 
 
+@router.get("/customers/{customer_id}")
+async def customer_detail(customer_id: int, db: Session = Depends(get_db),
+                           user: AdminUser = Depends(get_current_user)):
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    tokens = sorted(customer.tokens, key=lambda t: t.created_at, reverse=True)
+    devices = sorted(customer.devices, key=lambda d: d.created_at, reverse=True)
+    return {
+        **_customer_dict(customer),
+        "tokens": [_token_dict(t) for t in tokens],
+        "devices": [_device_dict(d) for d in devices],
+    }
+
+
 @router.post("/customers")
 async def customer_create(body: CustomerBody, request: Request, db: Session = Depends(get_db),
                            user: AdminUser = Depends(require_role(*ROLES_ADMIN))):
@@ -450,6 +480,15 @@ async def licenses_list(db: Session = Depends(get_db), user: AdminUser = Depends
     return [_license_dict(l) for l in db.query(License).order_by(License.activated_at.desc()).all()]
 
 
+@router.get("/licenses/{license_id}")
+async def license_detail(license_id: int, db: Session = Depends(get_db),
+                          user: AdminUser = Depends(get_current_user)):
+    lic = db.query(License).filter(License.id == license_id).first()
+    if not lic:
+        raise HTTPException(status_code=404, detail="License not found")
+    return _license_dict(lic, include_device=True)
+
+
 @router.post("/licenses/{license_id}/deactivate")
 async def license_deactivate(license_id: int, request: Request, db: Session = Depends(get_db),
                               user: AdminUser = Depends(require_role(*ROLES_ADMIN))):
@@ -470,6 +509,15 @@ async def license_deactivate(license_id: int, request: Request, db: Session = De
 @router.get("/devices")
 async def devices_list(db: Session = Depends(get_db), user: AdminUser = Depends(get_current_user)):
     return [_device_dict(d) for d in db.query(Device).order_by(Device.created_at.desc()).all()]
+
+
+@router.get("/devices/{device_id}")
+async def device_detail(device_id: int, db: Session = Depends(get_db),
+                         user: AdminUser = Depends(get_current_user)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return _device_dict(device, include_license=True)
 
 
 @router.post("/devices/{device_id}/block")

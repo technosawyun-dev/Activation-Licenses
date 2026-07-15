@@ -118,6 +118,7 @@ export default function TokensPage() {
                 <th className="th">Project</th>
                 <th className="th">Type</th>
                 <th className="th">Status</th>
+                <th className="th">License</th>
                 <th className="th">Created</th>
                 <th className="th">Expires</th>
                 <th className="th"></th>
@@ -125,7 +126,7 @@ export default function TokensPage() {
             </thead>
             <tbody>
               {tokens.length === 0 ? (
-                <tr><td colSpan={8} className="td text-center text-on-surface-variant text-sm py-10">
+                <tr><td colSpan={9} className="td text-center text-on-surface-variant text-sm py-10">
                   <div className="flex flex-col items-center gap-2">
                     <span className="msym text-outline" style={{ fontSize: 32 }}>key</span>
                     <p>No tokens generated yet</p>
@@ -138,6 +139,15 @@ export default function TokensPage() {
                   <td className="td text-on-surface-variant text-sm">{t.project_name}</td>
                   <td className="td text-xs text-on-surface-variant capitalize">{t.license_type}</td>
                   <td className="td"><span className={`badge badge-${t.status}`}>{t.status}</span></td>
+                  <td className="td">
+                    {t.license_is_active === null ? (
+                      <span className="text-xs text-outline">—</span>
+                    ) : t.license_is_active ? (
+                      <span className="badge badge-active">Active</span>
+                    ) : (
+                      <span className="badge badge-inactive">Inactive</span>
+                    )}
+                  </td>
                   <td className="td text-xs text-outline whitespace-nowrap">{formatDate(t.created_at)}</td>
                   <td className="td text-xs text-outline whitespace-nowrap">{t.expires_at ? formatDate(t.expires_at) : '—'}</td>
                   <td className="td text-right">

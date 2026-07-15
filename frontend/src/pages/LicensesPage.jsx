@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { usePageHeader } from '../context/PageHeaderContext';
 import Notification from '../components/Notification';
@@ -7,6 +8,7 @@ import { formatDate } from '../utils/format';
 
 export default function LicensesPage() {
   usePageHeader('Activated Licenses');
+  const navigate = useNavigate();
   const [licenses, setLicenses] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [success, setSuccess] = useState('');
@@ -65,7 +67,7 @@ export default function LicensesPage() {
                   </div>
                 </td></tr>
               ) : licenses.map((l) => (
-                <tr key={l.id} className="hover:bg-[#272a2c] transition-colors border-b group" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <tr key={l.id} className="hover:bg-[#272a2c] transition-colors border-b cursor-pointer group" style={{ borderColor: 'rgba(255,255,255,0.04)' }} onClick={() => navigate(`/licenses/${l.id}`)}>
                   <td className="td">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold" style={{ background: 'rgba(37,99,235,0.12)', color: '#b4c5ff' }}>
@@ -87,7 +89,7 @@ export default function LicensesPage() {
                   </td>
                   <td className="td text-right">
                     {l.is_active ? (
-                      <button onClick={() => handleDeactivate(l)} className="text-xs text-outline hover:text-error transition-colors font-mono opacity-0 group-hover:opacity-100">
+                      <button onClick={(e) => { e.stopPropagation(); handleDeactivate(l); }} className="text-xs text-outline hover:text-error transition-colors font-mono opacity-0 group-hover:opacity-100">
                         Deactivate
                       </button>
                     ) : (
